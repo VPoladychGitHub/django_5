@@ -1,3 +1,13 @@
 user1
-
+Qwertyui_1
 https://tutorial.djangogirls.org/ru/django_forms/
+
+
+
+                {% for choice in question.choice_set.all %}
+                    <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">
+                    <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br>
+                {% endfor %}
+
+
+                https://docs.djangoproject.com/en/3.1/topics/forms/

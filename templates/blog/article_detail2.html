@@ -1,0 +1,41 @@
+{% extends "base_generic.html" %}
+
+
+{% block content %}
+    <h1>Blog: {{ article.title }}</h1>
+    {#    <p>number_inhabitants :{{ object.number_inhabitants }}</p>#}
+    <div class="article">
+
+        <p>{{ article.body|linebreaksbr }}</p>
+        <p>Author : {{ author }}</p>
+        <p>Created date: {{ article.created_date }}</p>
+        {% if article.published_date %}
+            <div class="date">
+                <p>Published date: {{ article.published_date }}</p>
+            </div>
+        {% endif %}
+
+        <h1>Commets :</h1>
+        {% for comm in comments %}
+            <div class="comment">
+             <p>Username: {{ comm.username }}   say : </p>
+                <li> {{ comm.comment_text }}</li>
+                {{ comm.timestamp }}
+
+            </div>
+        {% endfor %}
+        {{ article.comment_text }}
+        <h1><a class="btn btn-default" href="{% url 'comment_new'  article.pk %}">Comment post<span
+                class="glyphicon glyphicon-pencil"></span></a></h1>
+        {% if user.is_authenticated %}
+
+            {% if user.username == article.author.username %}
+                {#                <h1>:{{ object.post_status }}</h1>#}
+                {#                <h1> {{ user.username }}</h1>#}
+                <h1><a class="btn btn-default" href="{% url 'article_edit' pk=article.pk %}">Edit post<span
+                        class="glyphicon glyphicon-pencil"></span></a></h1>
+
+            {% endif %}
+        {% endif %}
+    </div>
+{% endblock %}

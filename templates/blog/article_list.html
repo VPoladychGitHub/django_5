@@ -2,23 +2,45 @@
 
 {% block content %}
 
-  <h1>Article List</h1>
+    <h1>Article List</h1>
 
-  {% if article_list %}
-    <ul>
+    {% if page_obj %}
+        <ul>
 
-      {% for article in article_list %}
-        <li>
-          <a >
-            {{ article }}
+            {% for article in page_obj %}
+                <div class="article">
+                    <div class="date">
+                        {{ article.published_date }}
+                    </div>
+                    <h1><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h1>
+                    <p>!!!!! {{ article.text|linebreaksbr }}</p>
+                </div>
+                {#                <li>#}
+                {#                    <a>{{ article }} </a>#}
+                {#                    <a href="{{ article.get_absolute_url }}">{{ article.title }}</a>#}
+                {#                </li>#}
+            {% endfor %}
 
-          </a>
-        </li>
-      {% endfor %}
-
-    </ul>
-  {% else %}
-    <p>There are no authors available.</p>
-  {% endif %}
+        </ul>
+    {% else %}
+        <p>There are no authors available.</p>
+    {% endif %}
 
 {% endblock %}
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>

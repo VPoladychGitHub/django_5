@@ -1,15 +1,23 @@
+from django.contrib import messages
+from django.core.paginator import Paginator
+from django.views.generic import CreateView
+
 from django.contrib.auth import authenticate, login
+
 from django.http import HttpResponse
+from django.shortcuts import render, redirect, get_object_or_404
 from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
+from django.utils import timezone
 from django.views import generic
 
-from blog.forms import RegisterForm
-from blog.models import Article
+from blog.forms import RegisterForm, ArticleForm, CommentForm
+from blog.models import Article, Author
 
 
 def index(request):
     return HttpResponse("Hello, world. You're at the blog index.")
+
 
 def index2(request):
     context = {}
@@ -36,3 +44,109 @@ class ArticleListView(generic.ListView):
     """Generic class-based view for a list of cities."""
     model = Article
     paginate_by = 30
+
+
+class ArticleDetailView(generic.DetailView):
+    """Generic class-based detail view for an author."""
+    model = Article
+    fields = ['title', 'body', 'author', 'created_date', 'post_status']
+
+
+class ArticleCreate(generic.CreateView):
+    model = Article
+    fields = ['title', 'body', 'author', 'created_date', 'post_status']
+    initial = {'post_status': 'unpublished'}
+
+
+def article_list_by_user(request):
+    un = request.user.username
+    print("user : "+str(un))
+    user = Author.objects.get(username=un)
+    article_list = user.article_set.all()
+
+    paginator = Paginator(article_list, 10)  # Show 30 contacts per page.
+
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'blog/article_list.html', {'page_obj': page_obj})
+
+
+def article_detail(request, pk):
+    article = Article.objects.get(pk=pk)
+    comments = list(article.comment_set.all())
+
+    return render(request, 'blog/article_detail2.html',
+                  {'article': article, 'pk': pk, "comments": comments, "author": str(article.author.username)})
+
+
+def article_new(request):
+    if request.method == "POST":
+        form = ArticleForm(request.POST)
+        if form.is_valid():
+            f = form.save(commit=False)
+            ru = request.user.username
+            a = form.cleaned_data['author']
+            print(a.username)
+            print(ru)
+            if ru != a.username:
+                messages.add_message(request, messages.ERROR,
+                                     'Invalid username auther not same logged user:' + a.username)
+                # value = "Invalid username auther not same logged user"
+                # raise ValidationError(_('Invalid username auther not same logged user: %(value)s'),
+                #                       code='invalid',
+                #                       params={'value': value}, )
+            else:
+                print(form.cleaned_data['post_status'])
+                f.author = a
+                ps = form.cleaned_data['post_status']
+                if ps == 'published':
+                    f.published_date = timezone.now()
+                f.save()
+            return redirect('article-detail', pk=f.pk)
+    else:
+        form = ArticleForm()
+    return render(request, 'blog/article_edit.html', {'form': form})
+
+
+def article_edit(request, pk):
+    article = get_object_or_404(Article, pk=pk)
+    if request.method == "POST":
+        form = ArticleForm(request.POST, instance=article)
+        if form.is_valid():
+            f = form.save(commit=False)
+            ru = request.user.username
+            a = form.cleaned_data['author']
+            print(a.username)
+            print(ru)
+            if ru != a.username:
+                messages.add_message(request, messages.ERROR,
+                                     'Invalid username auther not same logged user:' + a.username)
+
+                # value = a
+                # raise ValidationError(_('Invalid username auther not same logged user: %(value)s'),
+                #                       code='invalid',
+                #                       params={'value': value}, )
+            else:
+                f.author = a
+                ps = form.cleaned_data['post_status']
+                if ps == 'published':
+                    f.published_date = timezone.now()
+                f.save()
+            return redirect('article-detail', pk=f.pk)
+    else:
+        form = ArticleForm(instance=article)
+    return render(request, 'blog/article_edit.html', {'form': form, 'pk': article.pk})
+
+
+def comment_new(request, pk):
+    if request.method == "POST":
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            f = form.save(commit=False)
+            f.article_id = pk
+            f.timestamp = timezone.now()
+            f.save()
+            return redirect('article-detail', pk=pk)
+    else:
+        form = CommentForm()
+    return render(request, 'blog/comment_new.html', {'form': form, 'pk': pk})
