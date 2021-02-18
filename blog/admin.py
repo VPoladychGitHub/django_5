@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.core.checks import messages
 from django.utils.translation import ngettext
 from django.contrib import messages
-from .models import Article, Comment, Author
+from .models import Article, Comment, Author, AuthorProfile
 
 
 class CommentAdmin(admin.ModelAdmin):
@@ -39,3 +39,4 @@ class ArticleAdmin(admin.ModelAdmin):
 admin.site.register(Article, ArticleAdmin)
 admin.site.register(Comment, CommentAdmin)
 admin.site.register(Author)
+admin.site.register(AuthorProfile)

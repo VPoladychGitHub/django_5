@@ -18,13 +18,13 @@
         <h1>Commets :</h1>
         {% for comm in comments %}
             <div class="comment">
-             <p>Username: {{ comm.username }}   say : </p>
+                <li>Username: {{ comm.username }}</li>
                 <li> {{ comm.comment_text }}</li>
                 {{ comm.timestamp }}
-
+                <p></p>
             </div>
         {% endfor %}
-        {{ article.comment_text }}
+
         <h1><a class="btn btn-default" href="{% url 'comment_new'  article.pk %}">Comment post<span
                 class="glyphicon glyphicon-pencil"></span></a></h1>
         {% if user.is_authenticated %}

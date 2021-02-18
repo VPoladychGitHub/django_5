@@ -8,13 +8,15 @@
         <ul>
 
             {% for article in page_obj %}
-                <div class="article">
-                    <div class="date">
-                        {{ article.published_date }}
+                <li>
+                    <div class="article">
+                        <div class="date">
+                            {{ article.published_date }}
+                        </div>
+                        <h1><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h1>
+                        <p><a href="{{ article.author.get_absolute_url }}">{{ article.author }}</a></p>
                     </div>
-                    <h1><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h1>
-                    <p>!!!!! {{ article.text|linebreaksbr }}</p>
-                </div>
+                </li>
                 {#                <li>#}
                 {#                    <a>{{ article }} </a>#}
                 {#                    <a href="{{ article.get_absolute_url }}">{{ article.title }}</a>#}

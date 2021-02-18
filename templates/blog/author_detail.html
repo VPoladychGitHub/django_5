@@ -1,0 +1,35 @@
+{% extends "base_generic.html" %}
+
+
+{% block content %}
+    <div class="author">
+        <h1>Author: {{ author }} </h1>
+        {% comment %}        <h1>Blog: {{ object.date_of_birth }}</h1>{% endcomment %}
+        <p>date of birth: {{ author.date_of_birth }}</p>
+
+        {% if author.authorprofile %}
+            <p>{{ author.authorprofile.about }}</p>
+        {% endif %}
+
+        <div style="margin-left:20px;margin-top:20px">
+            <h4>Aricles:</h4>
+
+            <dl>
+                {% for article in author.article_set.all %}
+                    <dt><a href="{% url 'article-detail' article.pk %}">{{ article.title }}</a>
+                    </dt>
+                {% endfor %}
+            </dl>
+
+        </div>
+    <p>user.username</p>
+    <p>author.username</p>
+        {% if user.username == author.username %}
+            {#                <h1>:{{ object.post_status }}</h1>#}
+            {#                <h1> {{ user.username }}</h1>#}
+            <h1><a class="btn btn-default" href="{% url 'author-update' pk=author.pk %}">Edit author<span
+                    class="glyphicon glyphicon-pencil"></span></a></h1>
+
+        {% endif %}
+    </div>
+{% endblock %}

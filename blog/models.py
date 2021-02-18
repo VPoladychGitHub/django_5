@@ -1,6 +1,3 @@
-import uuid
-from datetime import date
-
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
@@ -10,16 +7,26 @@ from django.utils.translation import gettext_lazy as _
 User = get_user_model()
 
 
+class AuthorProfile(models.Model):
+    author = models.OneToOneField("Author", on_delete=models.CASCADE)
+    about = models.TextField(_("about"), max_length=1000, help_text=_("Author bio"))
+
+    def __str__(self):
+        return f"{self.author.last_name} {self.author.first_name} Profile"
+
+
 class Author(models.Model):
     """Model representing an author."""
-    class AuthorPrivateStatus(models.IntegerChoices):
-        UNPUBLISHED = 1, _('unpublished')  # u
-        PUBLISHED = 2, _('published')  # p
+    # class AuthorPrivateStatus(models.IntegerChoices):
+    #     UNPUBLISHED = 1, _('unpublished')  # u
+    #     PUBLISHED = 2, _('published')  # p
     username = models.CharField(_("username"), max_length=100)
     first_name = models.CharField(_("first name"), max_length=100)
     last_name = models.CharField(_("last name"), max_length=100)
-    # date_of_birth = models.DateField(_("date of birth"), null=True, blank=True)
-    # mail = models.EmailField(_("mail"), null=True, blank=True)
+    date_of_birth = models.DateField(_("date of birth"), null=True, blank=True)
+
+    mail = models.EmailField(_("mail"), null=True, blank=True, default="")
+
     # mail_status = models.PositiveSmallIntegerField(choices=AuthorPrivateStatus.choices, default=1)
     # birth_mail_status = models.PositiveSmallIntegerField(choices=AuthorPrivateStatus.choices, default=1)
     class Meta:
@@ -58,7 +65,7 @@ class Comment(models.Model):
 
     def __str__(self):
         """String for representing the Model object."""
-        return f"{self.comment_text}, {self.timestamp}"
+        return f"{self.comment_text}, {self.article}"
 
 
 STATUS_CHOICES = (
@@ -70,12 +77,6 @@ STATUS_CHOICES = (
 
 class Article(models.Model):
     """Model representing a article ."""
-    #
-    # class LoanStatus(models.IntegerChoices):
-    #     UNPUBLISHED = 1, _('unpublished')  # u
-    #     PUBLISHED = 2, _('published')  # p
-    #     BLANK = 3, _("blanks")  # b
-
     title = models.CharField(_("title"), max_length=200)
     body = models.TextField(_("article body"))
     author = models.ForeignKey("Author", on_delete=models.SET_NULL, null=True, blank=True)
@@ -86,16 +87,11 @@ class Article(models.Model):
     # )
     post_status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='unpublished')
 
-    # @staticmethod
-    # def comments(self, pk):
-    #     q = Article.objects.get(pk)
-    #     return q.comment_set.all()
-
-    def publish(self):
-        self.status = 2
-        print("def publish(self)")
-        self.published_date = timezone.now()
-        self.save()
+    # def publish(self):
+    #     self.status = 2
+    #     print("def publish(self)")
+    #     self.published_date = timezone.now()
+    #     self.save()
 
     class Meta:
         ordering = ['published_date', 'created_date', 'title', 'author']
@@ -106,11 +102,3 @@ class Article(models.Model):
 
     def get_absolute_url(self):
         return reverse('article-detail', kwargs={'pk': self.pk})
-
-
-class AuthorProfile(models.Model):
-    author = models.OneToOneField("Author", on_delete=models.CASCADE)
-    about = models.TextField(_("about"), max_length=1000, help_text=_("Author bio"))
-
-    def __str__(self):
-        return f"{self.author.last_name} {self.author.first_name} Profile"

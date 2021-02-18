@@ -23,7 +23,8 @@ class ArticleForm(forms.ModelForm):
         model = Article
         fields = ['title', 'body', 'author', 'post_status']
 
+
 class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
-        fields = ['comment_text',"username"]
+        fields = ['comment_text', "username"]

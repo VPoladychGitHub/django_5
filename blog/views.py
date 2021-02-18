@@ -1,4 +1,6 @@
 from django.contrib import messages
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.views.generic import CreateView
 
@@ -40,6 +42,29 @@ class RegisterFormView(generic.FormView):
         return super(RegisterFormView, self).form_valid(form)
 
 
+def view_user(request, username):
+    un = request.user.username
+    auther_queryset = Author.objects.all()
+    if auther_queryset.filter(username=username).exists():
+        print("User contained in queryset")
+        author = Author.objects.get(username=username)
+        return redirect('author-update', pk=author.pk)
+    else:
+        print("User not  contained in queryset  you mast relogin: " + username)
+        return redirect('article_list')
+
+
+class AuthorDetailView(generic.DetailView):
+    """Generic class-based detail view for an author."""
+    model = Author
+
+
+# class AuthorUpdate(PermissionRequiredMixin, generic.UpdateView):
+class AuthorUpdate(generic.UpdateView):
+    model = Author
+    fields = ['first_name', 'last_name', 'date_of_birth']
+
+
 class ArticleListView(generic.ListView):
     """Generic class-based view for a list of cities."""
     model = Article
@@ -58,25 +83,50 @@ class ArticleCreate(generic.CreateView):
     initial = {'post_status': 'unpublished'}
 
 
+# def article_list(request):
+#     un = request.user.username
+#     print("user : " + str(un))
+#     user = Author.objects.get(username=un)
+#     article_list = user.article_set.all()
+#
+#     paginator = Paginator(article_list, 10)  # Show 30 contacts per page.
+#
+#     page_number = request.GET.get('page')
+#     page_obj = paginator.get_page(page_number)
+#     return render(request, 'blog/article_list.html', {'page_obj': page_obj})
+
+
 def article_list_by_user(request):
+    # un = request.user.username
+    # i = Author.objects.get(username__contains=un)
+    # print("user : " + str(un))
+    # i = Author.objects.get(username__contains=un)
+    # print('username__contains ============================== ' + str(i))
     un = request.user.username
-    print("user : "+str(un))
-    user = Author.objects.get(username=un)
-    article_list = user.article_set.all()
+    auther_queryset = Author.objects.all()
+    if auther_queryset.filter(username=un).exists():
+        print("Entry contained in queryset")
+        user = Author.objects.get(username=un)
+        article_list = user.article_set.all()
 
-    paginator = Paginator(article_list, 10)  # Show 30 contacts per page.
+        paginator = Paginator(article_list, 10)  # Show 30 contacts per page.
 
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    return render(request, 'blog/article_list.html', {'page_obj': page_obj})
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        return render(request, 'blog/article_list.html', {'page_obj': page_obj})
+    else:
+        return redirect('article_list')
 
 
 def article_detail(request, pk):
     article = Article.objects.get(pk=pk)
     comments = list(article.comment_set.all())
+    path_post = request.scheme + '://' + request.get_host() + request.path
 
+    request.session['path_post'] = path_post
     return render(request, 'blog/article_detail2.html',
-                  {'article': article, 'pk': pk, "comments": comments, "author": str(article.author.username)})
+                  {'article': article, 'pk': pk, "comments": comments, "author": str(article.author.username),
+                   'path_post': path_post})
 
 
 def article_new(request):
@@ -89,6 +139,7 @@ def article_new(request):
             print(a.username)
             print(ru)
             if ru != a.username:
+                print('Invalid username auther not same logged user:   ' + a.username + "  " + ru)
                 messages.add_message(request, messages.ERROR,
                                      'Invalid username auther not same logged user:' + a.username)
                 # value = "Invalid username auther not same logged user"
@@ -102,7 +153,8 @@ def article_new(request):
                 if ps == 'published':
                     f.published_date = timezone.now()
                 f.save()
-            return redirect('article-detail', pk=f.pk)
+                send_mail('subject', "new post", 'admin@example.com', [a.mail])
+                return redirect('article-detail', pk=f.pk)
     else:
         form = ArticleForm()
     return render(request, 'blog/article_edit.html', {'form': form})
@@ -132,12 +184,13 @@ def article_edit(request, pk):
                 if ps == 'published':
                     f.published_date = timezone.now()
                 f.save()
-            return redirect('article-detail', pk=f.pk)
+                return redirect('article-detail', pk=f.pk)
     else:
         form = ArticleForm(instance=article)
     return render(request, 'blog/article_edit.html', {'form': form, 'pk': article.pk})
 
 
+# def comment_new(request, pk, path):
 def comment_new(request, pk):
     if request.method == "POST":
         form = CommentForm(request.POST)
@@ -146,6 +199,10 @@ def comment_new(request, pk):
             f.article_id = pk
             f.timestamp = timezone.now()
             f.save()
+
+            path_post = request.session['path_post']
+         #   print("path_post  :" + str(f.article.author.mail))
+            send_mail('subject', path_post, 'admin@example.com', [f.article.author.mail])
             return redirect('article-detail', pk=pk)
     else:
         form = CommentForm()

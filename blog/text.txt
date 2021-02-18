@@ -1,8 +1,9 @@
 user1
 Qwertyui_1
 https://tutorial.djangogirls.org/ru/django_forms/
-
-
+python manage.py migrate
+python manage.py makemigrations
+C:\python_work_2\django_5\env\Scripts\activate.bat
 
                 {% for choice in question.choice_set.all %}
                     <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">
@@ -11,3 +12,22 @@ https://tutorial.djangogirls.org/ru/django_forms/
 
 
                 https://docs.djangoproject.com/en/3.1/topics/forms/
+
+
+                def article_list_by_user(request):
+    un = request.user.username
+    # i = Author.objects.get(username__contains=un)
+    # print("user : " + str(un))
+    # i = Author.objects.get(username__contains=un)
+    # print('username__contains ============================== ' + str(i))
+
+
+
+    user = Author.objects.get(username=un)
+    article_list = user.article_set.all()
+
+    paginator = Paginator(article_list, 10)  # Show 30 contacts per page.
+
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'blog/article_list.html', {'page_obj': page_obj})

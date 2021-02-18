@@ -6,6 +6,10 @@ from .views import index
 urlpatterns = [
   #  path('', views.index, name='index'),article_detail    by_user
   #  path('authors/', views.AuthoreListView.as_view(), name='author_list'),
+    path('user/<str:username>', views.view_user, name='view-user'),
+    path('author/<int:pk>', views.AuthorDetailView.as_view(), name='author-detail'),
+    path('author/<int:pk>/update/', views.AuthorUpdate.as_view(), name='author-update'),
+   # path('author/<int:pk>', views.article_detail, name='author-detail'),
     path('articles/', views.ArticleListView.as_view(), name='article_list'),
     path('articles_user/', views.article_list_by_user, name='user_article_list'),
     path('article/<int:pk>', views.article_detail, name='article-detail'),
